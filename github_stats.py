@@ -2,11 +2,10 @@
 
 import asyncio
 import os
-from typing import Dict, List, Optional, Set, Tuple, Any, cast
+from typing import Any, Dict, List, Optional, Set, Tuple, cast
 
 import aiohttp
 import requests
-
 
 ###############################################################################
 # Main Classes
@@ -257,12 +256,14 @@ class Stats(object):
         session: aiohttp.ClientSession,
         exclude_repos: Optional[Set] = None,
         exclude_langs: Optional[Set] = None,
+        langs_to_watch: Optional[Set] = None,
         ignore_forked_repos: bool = False,
     ):
         self.username = username
         self._ignore_forked_repos = ignore_forked_repos
         self._exclude_repos = set() if exclude_repos is None else exclude_repos
         self._exclude_langs = set() if exclude_langs is None else exclude_langs
+        self._langs_to_watch = set() if langs_to_watch is None else langs_to_watch
         self.queries = Queries(username, access_token, session)
 
         self._name: Optional[str] = None
@@ -303,8 +304,11 @@ Languages:
         self._forks = 0
         self._languages = dict()
         self._repos = set()
-
+        exclude_repos_lower = {
+            self.get_full_repo_path(x.lower()) for x in self._exclude_repos
+        }
         exclude_langs_lower = {x.lower() for x in self._exclude_langs}
+        langs_to_watch_lower = {x.lower() for x in self._langs_to_watch}
 
         next_owned = None
         next_contrib = None
@@ -340,24 +344,30 @@ Languages:
             for repo in repos:
                 if repo is None:
                     continue
-                name = repo.get("nameWithOwner")
-                if name in self._repos or name in self._exclude_repos:
+                repo_name = repo.get("nameWithOwner")
+                if repo_name in self._repos:
                     continue
-                self._repos.add(name)
+
+                if repo_name.lower() in exclude_repos_lower:
+                    continue
+                self._repos.add(repo_name)
                 self._stargazers += repo.get("stargazers").get("totalCount", 0)
                 self._forks += repo.get("forkCount", 0)
 
                 for lang in repo.get("languages", {}).get("edges", []):
-                    name = lang.get("node", {}).get("name", "Other")
+                    lang_name = lang.get("node", {}).get("name", "Other")
                     languages = await self.languages
-                    if name.lower() in exclude_langs_lower:
+                    if lang_name.lower() in exclude_langs_lower:
                         continue
-                    if name in languages:
-                        languages[name]["size"] += lang.get("size", 0)
-                        languages[name]["occurrences"] += 1
+                    lang_size = lang.get("size", 0)
+                    if lang_name.lower() in langs_to_watch_lower:
+                        print(f"found {lang_name}: {repo_name}, size: {lang_size}")
+                    if lang_name in languages:
+                        languages[lang_name]["size"] += lang_size
+                        languages[lang_name]["occurrences"] += 1
                     else:
-                        languages[name] = {
-                            "size": lang.get("size", 0),
+                        languages[lang_name] = {
+                            "size": lang_size,
                             "occurrences": 1,
                             "color": lang.get("node", {}).get("color"),
                         }
@@ -379,6 +389,16 @@ Languages:
         langs_total = sum([v.get("size", 0) for v in self._languages.values()])
         for k, v in self._languages.items():
             v["prop"] = 100 * (v.get("size", 0) / langs_total)
+
+    def get_full_repo_path(self, repo: str) -> str:
+        """
+        :param repo: name of repo to get full path of
+        :return: full path of repo
+        """
+        if "/" in repo:
+            return repo
+
+        return f"{self.username}/{repo}"
 
     @property
     async def name(self) -> str:

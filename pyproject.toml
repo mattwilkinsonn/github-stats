@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "github-stats"
+version = "0.1.0"
+description = ""
+authors = ["Matt Wilkinson <matt@mattwilkinson.dev>"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+requests = "aiohttp"
+aiohttp = "^3.8.3"
+python-dotenv = "^0.21.1"
+
+[tool.poetry.dev-dependencies]
+mypy = "^0.991"
+flake8 = "^6.0.0"
+black = "^22.12.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

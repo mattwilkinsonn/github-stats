@@ -5,9 +5,9 @@ import os
 import re
 
 import aiohttp
+from dotenv import load_dotenv
 
 from github_stats import Stats
-
 
 ################################################################################
 # Helper Functions
@@ -99,6 +99,8 @@ async def main() -> None:
     """
     Generate all badges
     """
+    load_dotenv()
+    load_dotenv(".env.local")
     access_token = os.getenv("ACCESS_TOKEN")
     if not access_token:
         # access_token = os.getenv("GITHUB_TOKEN")
@@ -114,6 +116,11 @@ async def main() -> None:
     excluded_langs = (
         {x.strip() for x in exclude_langs.split(",")} if exclude_langs else None
     )
+
+    lang_to_watch = os.getenv("LANGS_TO_WATCH")
+    langs_to_watch = (
+        {x.strip() for x in lang_to_watch.split(",")} if lang_to_watch else None
+    )
     # Convert a truthy value to a Boolean
     raw_ignore_forked_repos = os.getenv("EXCLUDE_FORKED_REPOS")
     ignore_forked_repos = (
@@ -127,6 +134,7 @@ async def main() -> None:
             session,
             exclude_repos=excluded_repos,
             exclude_langs=excluded_langs,
+            langs_to_watch=langs_to_watch,
             ignore_forked_repos=ignore_forked_repos,
         )
         await asyncio.gather(generate_languages(s), generate_overview(s))
