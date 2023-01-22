@@ -5,7 +5,7 @@ description = ""
 authors = ["Matt Wilkinson <matt@mattwilkinson.dev>"]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.8"
 requests = "aiohttp"
 aiohttp = "^3.8.3"
 python-dotenv = "^0.21.1"
