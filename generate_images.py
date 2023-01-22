@@ -99,8 +99,8 @@ async def main() -> None:
     """
     Generate all badges
     """
-    load_dotenv()
-    load_dotenv(".env.local")
+    load_dotenv(override=True)
+    load_dotenv(".env.local", override=True)
     access_token = os.getenv("ACCESS_TOKEN")
     if not access_token:
         # access_token = os.getenv("GITHUB_TOKEN")
