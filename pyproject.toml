@@ -6,9 +6,9 @@ authors = ["Matt Wilkinson <matt@mattwilkinson.dev>"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
-requests = "aiohttp"
 aiohttp = "^3.8.3"
 python-dotenv = "^0.21.1"
+requests = "^2.28.2"
 
 [tool.poetry.dev-dependencies]
 mypy = "^0.991"
