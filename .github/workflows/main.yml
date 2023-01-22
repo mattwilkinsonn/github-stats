@@ -25,7 +25,7 @@ jobs:
           python-version: "3.9"
           architecture: "x64"
           cache: "poetry"
-      - run: poetry install
+      - run: poetry install --no-dev
 
       # Generate all statistics images
       - name: Generate images
